@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch Processing - AI Forgery Detector</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <i class="fas fa-shield-alt"></i>
+                <span>AI Forgery Detector</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="/batch" class="active"><i class="fas fa-images"></i> Batch Processing</a></li>
+                <li><a href="/about"><i class="fas fa-info-circle"></i> About</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <section class="main-content">
+        <div class="container">
+            <div class="page-header">
+                <h1><i class="fas fa-images"></i> Batch Image Processing</h1>
+                <p>Upload multiple images for simultaneous forgery detection</p>
+            </div>
+
+            <!-- Upload Section -->
+            <div class="upload-section">
+                <div class="batch-upload-container">
+                    <input type="file" id="batchFileInput" accept="image/*" multiple hidden>
+                    <div class="upload-box batch-upload" id="batchUploadBox">
+                        <div class="upload-content">
+                            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                            <h3>Select Multiple Images</h3>
+                            <p>You can select up to 50 images at once</p>
+                            <button class="btn btn-primary" onclick="document.getElementById('batchFileInput').click()">
+                                <i class="fas fa-folder-open"></i> Select Images
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="selected-files" id="selectedFiles" style="display: none;">
+                        <h3><i class="fas fa-check-circle"></i> Selected Images (<span id="fileCount">0</span>)</h3>
+                        <div class="file-list" id="fileList"></div>
+                        <button class="btn btn-danger" onclick="clearFiles()">
+                            <i class="fas fa-trash"></i> Clear All
+                        </button>
+                    </div>
+
+                    <div class="model-selector">
+                        <label for="batchModelSelect">
+                            <i class="fas fa-cogs"></i> Select ML Model:
+                        </label>
+                        <select id="batchModelSelect" class="select-model">
+                            <option value="Ensemble">Ensemble (Recommended)</option>
+                            <option value="Random Forest">Random Forest</option>
+                            <option value="SVM">Support Vector Machine</option>
+                            <option value="Gradient Boosting">Gradient Boosting</option>
+                            <option value="Logistic Regression">Logistic Regression</option>
+                            <option value="KNN">K-Nearest Neighbors</option>
+                            <option value="Decision Tree">Decision Tree</option>
+                            <option value="Naive Bayes">Naive Bayes</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-analyze" id="batchAnalyzeBtn" onclick="analyzeBatch()" disabled>
+                        <i class="fas fa-search"></i> Analyze All Images
+                    </button>
+                </div>
+            </div>
+
+            <!-- Progress Section -->
+            <div class="progress-section" id="progressSection" style="display: none;">
+                <h3><i class="fas fa-spinner fa-spin"></i> Processing Images...</h3>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar">
+                        <span id="progressText">0%</span>
+                    </div>
+                </div>
+                <p id="progressStatus">Processing 0 of 0 images...</p>
+            </div>
+
+            <!-- Results Section -->
+            <div class="batch-results-section" id="batchResultsSection" style="display: none;">
+                <div class="results-header">
+                    <h2><i class="fas fa-clipboard-check"></i> Batch Analysis Results</h2>
+                </div>
+
+                <!-- Summary Cards -->
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <i class="fas fa-images"></i>
+                        <h4>Total Images</h4>
+                        <p class="summary-number" id="summaryTotal">0</p>
+                    </div>
+                    <div class="summary-card authentic">
+                        <i class="fas fa-check-circle"></i>
+                        <h4>Authentic</h4>
+                        <p class="summary-number" id="summaryAuthentic">0</p>
+                    </div>
+                    <div class="summary-card forged">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h4>Forged</h4>
+                        <p class="summary-number" id="summaryForged">0</p>
+                    </div>
+                    <div class="summary-card">
+                        <i class="fas fa-chart-pie"></i>
+                        <h4>Success Rate</h4>
+                        <p class="summary-number" id="summarySuccess">0%</p>
+                    </div>
+                </div>
+
+                <!-- Results Table -->
+                <div class="results-table-container">
+                    <h3><i class="fas fa-table"></i> Detailed Results</h3>
+                    <div class="table-actions">
+                        <button class="btn btn-download" onclick="downloadCSV()">
+                            <i class="fas fa-file-csv"></i> Export to CSV
+                        </button>
+                        <button class="btn btn-secondary" onclick="resetBatch()">
+                            <i class="fas fa-redo"></i> Process New Batch
+                        </button>
+                    </div>
+                    <table class="results-table" id="resultsTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Filename</th>
+                                <th>Prediction</th>
+                                <th>Confidence</th>
+                                <th>Authentic Prob.</th>
+                                <th>Forged Prob.</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 AI Image Forgery Detection System. Machine Learning Project.</p>
+            <p>Powered by Flask, scikit-learn, OpenCV & TensorFlow</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/batch.js') }}"></script>
+</body>
+</html>

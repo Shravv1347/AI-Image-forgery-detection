@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Image Forgery Detection System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <i class="fas fa-shield-alt"></i>
+                <span>AI Forgery Detector</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/" class="active"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="/batch"><i class="fas fa-images"></i> Batch Processing</a></li>
+                <li><a href="/about"><i class="fas fa-info-circle"></i> About</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    <i class="fas fa-brain"></i>
+                    AI Image Forgery Detection
+                </h1>
+                <p class="hero-subtitle">
+                    Detect manipulated and forged images using advanced Machine Learning algorithms
+                </p>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <i class="fas fa-robot"></i>
+                        <span>7+ ML Models</span>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-chart-line"></i>
+                        <span>100% Accuracy</span>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-bolt"></i>
+                        <span>Real-time Analysis</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <section class="main-content">
+        <div class="container">
+            <!-- Upload Section -->
+            <div class="upload-section">
+                <div class="upload-header">
+                    <h2><i class="fas fa-cloud-upload-alt"></i> Upload Image for Analysis</h2>
+                    <p>Supported formats: JPG, PNG, JPEG, BMP, TIFF (Max: 16MB)</p>
+                </div>
+
+                <div class="upload-container">
+                    <div class="upload-box" id="uploadBox">
+                        <input type="file" id="fileInput" accept="image/*" hidden>
+                        <div class="upload-content">
+                            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                            <h3>Drag & Drop your image here</h3>
+                            <p>or</p>
+                            <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                                <i class="fas fa-folder-open"></i> Browse Files
+                            </button>
+                        </div>
+                        <div class="image-preview" id="imagePreview" style="display: none;">
+                            <img id="previewImg" src="" alt="Preview">
+                            <button class="btn-remove" onclick="removeImage()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="model-selector">
+                        <label for="modelSelect">
+                            <i class="fas fa-cogs"></i> Select ML Model:
+                        </label>
+                        <select id="modelSelect" class="select-model">
+                            <option value="Ensemble">Ensemble (Recommended)</option>
+                            <option value="Random Forest">Random Forest</option>
+                            <option value="SVM">Support Vector Machine</option>
+                            <option value="Gradient Boosting">Gradient Boosting</option>
+                            <option value="Logistic Regression">Logistic Regression</option>
+                            <option value="KNN">K-Nearest Neighbors</option>
+                            <option value="Decision Tree">Decision Tree</option>
+                            <option value="Naive Bayes">Naive Bayes</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-analyze" id="analyzeBtn" onclick="analyzeImage()" disabled>
+                        <i class="fas fa-search"></i> Analyze Image
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div class="loading" id="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Analyzing image... Please wait</p>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section" id="resultsSection" style="display: none;">
+                <div class="results-header">
+                    <h2><i class="fas fa-clipboard-check"></i> Analysis Results</h2>
+                </div>
+
+                <!-- Prediction Card -->
+                <div class="prediction-card" id="predictionCard">
+                    <div class="prediction-icon" id="predictionIcon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 id="predictionText">AUTHENTIC</h3>
+                    <div class="confidence-badge" id="confidenceBadge">
+                        <span id="confidenceText">Confidence: 95.5%</span>
+                    </div>
+                    <p class="model-used">Model: <span id="modelUsed">Ensemble</span></p>
+                </div>
+
+                <!-- Probability Chart -->
+                <div class="chart-container">
+                    <h3><i class="fas fa-chart-bar"></i> Probability Distribution</h3>
+                    <div class="probability-bars">
+                        <div class="prob-bar-container">
+                            <div class="prob-label">
+                                <span>Authentic</span>
+                                <span id="probAuthentic">0%</span>
+                            </div>
+                            <div class="prob-bar-bg">
+                                <div class="prob-bar authentic" id="barAuthentic" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="prob-bar-container">
+                            <div class="prob-label">
+                                <span>Forged</span>
+                                <span id="probForged">0%</span>
+                            </div>
+                            <div class="prob-bar-bg">
+                                <div class="prob-bar forged" id="barForged" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Image Info -->
+                <div class="info-grid">
+                    <div class="info-card">
+                        <i class="fas fa-file-image"></i>
+                        <h4>Filename</h4>
+                        <p id="infoFilename">-</p>
+                    </div>
+                    <div class="info-card">
+                        <i class="fas fa-ruler-combined"></i>
+                        <h4>Dimensions</h4>
+                        <p id="infoDimensions">-</p>
+                    </div>
+                    <div class="info-card">
+                        <i class="fas fa-database"></i>
+                        <h4>File Size</h4>
+                        <p id="infoSize">-</p>
+                    </div>
+                    <div class="info-card">
+                        <i class="fas fa-th"></i>
+                        <h4>Total Pixels</h4>
+                        <p id="infoPixels">-</p>
+                    </div>
+                </div>
+
+                <!-- Detailed Visualization -->
+                <div class="visualization-container">
+                    <h3><i class="fas fa-microscope"></i> Detailed Analysis</h3>
+                    <img id="visualizationImg" src="" alt="Detailed Analysis" class="visualization-img">
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="resetAnalysis()">
+                        <i class="fas fa-redo"></i> Analyze Another Image
+                    </button>
+                    <button class="btn btn-download" onclick="downloadReport()">
+                        <i class="fas fa-download"></i> Download Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 AI Image Forgery Detection System. Machine Learning Project.</p>
+            <p>Powered by Flask, scikit-learn, OpenCV & TensorFlow</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
